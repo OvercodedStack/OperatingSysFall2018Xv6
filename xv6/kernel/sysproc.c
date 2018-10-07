@@ -118,7 +118,7 @@ string printvals(int mul){
 //Prints out a list of data processing. Will print out a graph when prompted. 
 //Returns 0 if successful, -1 if not
 int 
-sys_getinfo(strut pstat *){
+sys_getinfo(struct pstat *){
   int returnVal;
   if (argint(0,&returnVal) <0)
     return -1
@@ -132,11 +132,6 @@ sys_getinfo(strut pstat *){
   }
   return 0; 
 }
-
-strut sys_getprocvalues(void){
-  return proc
-}
-
 
 // Return how many system calls have been made since the start of the program. Since boot. 
 int

@@ -28,6 +28,8 @@ string printvals(int mul){
 }
 */
 int main (void){
+
+    /*
     printf(1,"Displaying the amount of system calls.");
     pstat values = getprocvalues();
     size_t n = sizeof(values->inuse)/sizeof(values->inuse[0]);
@@ -38,6 +40,8 @@ int main (void){
             print (1,"Process runtime: %s \n", printvals(values->ticks[n]));
         }
     }
+
+    */
     exit();
 
 
