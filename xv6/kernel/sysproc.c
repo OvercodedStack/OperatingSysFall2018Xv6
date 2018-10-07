@@ -6,6 +6,9 @@
 #include "proc.h"
 #include "sysfunc.h"
 
+#include string
+#include 
+
 
 //int sfs = 0; 
 
@@ -92,6 +95,49 @@ sys_uptime(void)
   return xticks;
 }
 
+
+//Function to seek literal amount of tickets assigned to proc
+//Returns 0 if successful, -1 if not
+int
+sys_settickets(int tick_set){
+  int value;
+  if(argint(0,&value) <0)
+    return -1;
+  proc->ticket_amt = tick_set;
+  return 0;
+}
+
+string printvals(int mul){
+    string returnVal = "";
+    for (int p = 0; p < mul; p++){
+        returnVal +=  "#"
+    }
+    return returnVal;
+}
+
+//Prints out a list of data processing. Will print out a graph when prompted. 
+//Returns 0 if successful, -1 if not
+int 
+sys_getinfo(strut pstat *){
+  int returnVal;
+  if (argint(0,&returnVal) <0)
+    return -1
+  
+  for (int i = 0; i < n ; i++){
+          if (values->inuse[i] == 0){
+          print (1,"Process PID: %d", values->pid[n]);
+          print (1,"Process ticket amount: %d", values->tickets[n]);
+          print (1,"Process runtime: %s \n", printvals(values->ticks[n]));
+      }
+  }
+  return 0; 
+}
+
+strut sys_getprocvalues(void){
+  return proc
+}
+
+
 // Return how many system calls have been made since the start of the program. Since boot. 
 int
 sys_howmanysys(void)
@@ -100,3 +146,5 @@ int call_amt = 0;
 call_amt = proc->syscall_num;
 return call_amt; 
 }
+
+void 

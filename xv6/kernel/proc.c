@@ -25,6 +25,19 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+int
+settickets(int number){
+  value = 0;
+
+  return value;
+}
+
+int getpinfo(strut pstat *){
+  value = 0;
+
+  return value
+}
+
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
 // state required to run in the kernel.
