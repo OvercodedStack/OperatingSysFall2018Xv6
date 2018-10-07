@@ -21,7 +21,8 @@ struct cpu {
   int intena;                  // Were interrupts enabled before pushcli?
   int ticket_amt;              // Amount of tickets assigned to process
   // Cpu-local storage variables; see below
-  struct cpu *cpu;
+  struct cpu *cpu;     
+  struct pstat *process_statuses; //Global reference for the process statuses
   struct proc *proc;           // The currently-running process.
 };
 

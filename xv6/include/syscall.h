@@ -25,5 +25,8 @@
 #define SYS_uptime 21
 #define SYS_howmanysys 22
 #define SYS_getprocvalues  23
+#define SYS_return_pstats 24
+#define SYS_settickets 25
+#define SYS_getpinfo 26 
 
 #endif // _SYSCALL_H_

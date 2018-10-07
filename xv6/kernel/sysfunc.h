@@ -23,8 +23,11 @@ int sys_unlink(void);
 int sys_wait(void);
 int sys_write(void);
 int sys_uptime(void);
+
+struct sys_return_pstats(void);
+
 int sys_settickets(int tick_set);
-int sys_getinfo(strut pstat);
+int sys_getpinfo(struct pstat);
 int sys_howmanysys(void);
 
 

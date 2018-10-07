@@ -26,7 +26,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int howmanysys(void);
-string getprocvalues(void);
+int getpinfo(pstat structure*);
+int settickets(int tick_set);
 
 // user library functions (ulib.c)
 int stat(char*, struct stat*);

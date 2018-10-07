@@ -6,10 +6,6 @@
 #include "proc.h"
 #include "sysfunc.h"
 
-#include string
-#include 
-
-
 //int sfs = 0; 
 
 int
@@ -106,7 +102,7 @@ sys_settickets(int tick_set){
   proc->ticket_amt = tick_set;
   return 0;
 }
-
+/*
 string printvals(int mul){
     string returnVal = "";
     for (int p = 0; p < mul; p++){
@@ -114,11 +110,13 @@ string printvals(int mul){
     }
     return returnVal;
 }
+*/
+
 
 //Prints out a list of data processing. Will print out a graph when prompted. 
 //Returns 0 if successful, -1 if not
 int 
-sys_getinfo(struct pstat *){
+sys_getpinfo(struct pstat *){
   int returnVal;
   if (argint(0,&returnVal) <0)
     return -1
@@ -127,7 +125,7 @@ sys_getinfo(struct pstat *){
           if (values->inuse[i] == 0){
           print (1,"Process PID: %d", values->pid[n]);
           print (1,"Process ticket amount: %d", values->tickets[n]);
-          print (1,"Process runtime: %s \n", printvals(values->ticks[n]));
+          print (1,"Process runtime: %s \n", values->ticks[n]);
       }
   }
   return 0; 

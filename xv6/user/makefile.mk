@@ -17,7 +17,7 @@ USER_PROGS := \
 	usertests\
 	wc\
 	howmanysys\
-	graphprocs\
+	graphproc\
 	zombie
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
@@ -27,8 +27,8 @@ USER_LIBS := \
 	ulib.o\
 	usys.o\
 	printf.o\
-	umalloc.o\
-	rand.o
+	umalloc.o
+	 
 
 
 USER_LIBS := $(addprefix user/, $(USER_LIBS))

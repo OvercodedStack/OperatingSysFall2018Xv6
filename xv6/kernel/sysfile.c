@@ -390,3 +390,17 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+struct 
+sys_return_pstats(void)
+{
+  struct pstat *statistics; 
+  if(argfd(0, 0, &f) < 0){
+    return NULL;
+  }
+  statistics->inuse = process_statuses->inuse;
+  statistics->tickets = process_statuses->tickets;
+  statistics->ticks = process_statuses->ticks;
+  statistics->pid = process_statuses->pid;
+  return statistics;  
+}

@@ -25,17 +25,22 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
-int
-settickets(int number){
-  value = 0;
 
-  return value;
+
+int 
+genRand()
+{
+  int next_val = 3535
+  next_val = ((next_val * next_val)/100)%10000;
+  return next_val;
 }
 
-int getpinfo(strut pstat *){
-  value = 0;
-
-  return value
+//Random number generator for random generation purposes
+int 
+rand_gen(int min, int max){
+  //int genVal = (genRand() % (max - min + 1)) + min;
+  int genVal = (genRand() % (max + 1 - min)) + min;
+  return genVal;
 }
 
 // Look in the process table for an UNUSED proc.
@@ -58,6 +63,9 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+
+  //Process must initialize with a number of tickets inside of it. 
+  p->ticket_amt = 15; 
   release(&ptable.lock);
 
   // Allocate kernel stack if possible.
@@ -167,6 +175,7 @@ fork(void)
   np->cwd = idup(proc->cwd);
  
   pid = np->pid;
+
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
   return pid;
@@ -192,7 +201,9 @@ exit(void)
     }
   }
 
+
   iput(proc->cwd);
+
   proc->cwd = 0;
 
   acquire(&ptable.lock);
@@ -269,16 +280,40 @@ void
 scheduler(void)
 {
   struct proc *p;
+  int proc_index = 1; 
+
+
+
 
   for(;;){
+    int ticket_counter = 0;
+    int ticket_total = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      ticket_total = ticket_total + p->ticket_amt;
+    }
+    int winner_ticket = rand_gen(0, ticket_total);
+
+
     // Enable interrupts on this processor.
-    sti();
+    //sti();
+    if (!proc_index) hlt();
+      proc_index = 0;
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+
+
+      //Highly temporary
+      ticket_counter += proc->ticket_amt;
+      if (ticket_counter < winner_ticket){
+        continue; 
+      }
+      proc_index = 1; 
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -292,6 +327,7 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       proc = 0;
+      break; 
     }
     release(&ptable.lock);
 
