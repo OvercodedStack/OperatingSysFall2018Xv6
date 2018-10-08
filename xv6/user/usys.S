@@ -30,5 +30,8 @@ SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(howmanysys)
+SYSCALL(return_pstats)
+SYSCALL(settickets)
 SYSCALL(getpinfo)
-SYSCALL(getprocvalues)
+
+

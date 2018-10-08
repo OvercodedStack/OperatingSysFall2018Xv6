@@ -13,30 +13,30 @@
 *///////////////////////////////////////////////
 #include "types.h"
 #include "stat.h"
-//#include "pstat.h"
 #include "user.h"
-
+#include "pstat.h"
+ 
 
 
 
 void printvals(int mul){
     for (int p = 0; p < mul; p++){
-        print(1,"#");
+        printf(1,"#");
     }
-    return returnVal;
 }
 
 int main (void){
-    struct values = sys_return_pstats();
+    struct pstat values;
+    values = return_pstats();
     printf(1,"Displaying the amount of system calls.");
-    size_t n = sizeof(values->inuse)/sizeof(values->inuse[0]);
+    int n = sizeof(values.inuse)/sizeof(values.inuse[0]);
     for (int i = 0; i < n ; i++){
-            if (values->inuse[i] == 0){
-            print (1,"Process PID: %d", values->pid[n]);
-            print (1,"Process ticket amount: %d", values->tickets[n]);
-            print (1,"Process runtime: ");
-            printvals(values->ticks[n]);
-            print (1, "\n");
+            if (values.inuse[i] == 0){
+            printf (1,"Process PID: %d", (int)values.pid[n]);
+            printf (1,"Process ticket amount: %d", (int)values.tickets[n]);
+            printf (1,"Process runtime: ");
+            printvals((int)values.ticks[n]);
+            printf (1, "\n");
         }
     } 
     exit();

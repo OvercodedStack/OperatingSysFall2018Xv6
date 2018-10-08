@@ -1,6 +1,8 @@
+
+#include "param.h"
 #ifndef _PSTAT_H_
 #define _PSTAT_H_
-#include "param.h"
+
 
 /*
 Let's consider this as a formed strut that can store statistics of the processes that have ran

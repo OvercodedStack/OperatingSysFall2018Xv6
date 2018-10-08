@@ -8,6 +8,7 @@
 #include "file.h"
 #include "fcntl.h"
 #include "sysfunc.h"
+#include "pstat.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -391,16 +392,3 @@ sys_pipe(void)
   return 0;
 }
 
-struct 
-sys_return_pstats(void)
-{
-  struct pstat *statistics; 
-  if(argfd(0, 0, &f) < 0){
-    return NULL;
-  }
-  statistics->inuse = process_statuses->inuse;
-  statistics->tickets = process_statuses->tickets;
-  statistics->ticks = process_statuses->ticks;
-  statistics->pid = process_statuses->pid;
-  return statistics;  
-}

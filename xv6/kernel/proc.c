@@ -30,7 +30,7 @@ pinit(void)
 int 
 genRand()
 {
-  int next_val = 3535
+  int next_val = 3535;
   next_val = ((next_val * next_val)/100)%10000;
   return next_val;
 }
@@ -57,8 +57,6 @@ allocproc(void)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
-  release(&ptable.lock);
-  return 0;
 
 found:
   p->state = EMBRYO;
@@ -298,7 +296,7 @@ scheduler(void)
 
     // Enable interrupts on this processor.
     //sti();
-    if (!proc_index) hlt();
+    if (!proc_index);
       proc_index = 0;
 
     // Loop over process table looking for process to run.
@@ -369,9 +367,12 @@ yield(void)
 void
 forkret(void)
 {
+  //static int first = 1;
   // Still holding ptable.lock from scheduler.
   release(&ptable.lock);
-  
+  //first = 0;
+  //init(ROOTDEV);
+  //initlog(ROOTDEV);
   // Return to "caller", actually trapret (see allocproc).
 }
 

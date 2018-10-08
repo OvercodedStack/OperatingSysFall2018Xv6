@@ -3,6 +3,7 @@
 #include "param.h"
 #include "mmu.h"
 #include "proc.h"
+#include "pstat.h"
 #include "x86.h"
 #include "syscall.h"
 #include "sysfunc.h"
@@ -107,8 +108,10 @@ static int (*syscalls[])(void) = {
 [SYS_wait]    sys_wait,
 [SYS_write]   sys_write,
 [SYS_uptime]  sys_uptime,
-[SYS_howmanysys] sys_howmanysys,
-[SYS_pstat]  sys_getprocvalues,
+[SYS_howmanysys]    sys_howmanysys,
+[SYS_return_pstats] sys_return_pstats,
+[SYS_settickets]    sys_settickets,
+[SYS_getpinfo]      sys_getpinfo,
 };
 
 // Called on a syscall trap. Checks that the syscall number (passed via eax)

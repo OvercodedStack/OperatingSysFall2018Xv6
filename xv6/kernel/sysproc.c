@@ -5,7 +5,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "sysfunc.h"
-
+#include "pstat.h"
 //int sfs = 0; 
 
 int
@@ -91,7 +91,32 @@ sys_uptime(void)
   return xticks;
 }
 
+// Return how many system calls have been made since the start of the program. Since boot. 
+int
+sys_howmanysys(void)
+{
+int call_amt = 0;
+call_amt = proc->sys_return_pstats
+return call_amt; sys_return_pstats
+}
 
+
+struct pstat
+sys_return_pstats(void)
+{
+  /*
+  struct pstat *statistics; 
+  if(argfd(0, 0, &f) < 0){
+    return NULL;
+  }
+  statistics->inuse = process_statuses->inuse;
+  statistics->tickets = process_statuses->tickets;
+  statistics->ticks = process_statuses->ticks;
+  statistics->pid = process_statuses->pid;
+  return statistics;  
+*/
+return process_statuses;
+}
 //Function to seek literal amount of tickets assigned to proc
 //Returns 0 if successful, -1 if not
 int
@@ -102,16 +127,6 @@ sys_settickets(int tick_set){
   proc->ticket_amt = tick_set;
   return 0;
 }
-/*
-string printvals(int mul){
-    string returnVal = "";
-    for (int p = 0; p < mul; p++){
-        returnVal +=  "#"
-    }
-    return returnVal;
-}
-*/
-
 
 //Prints out a list of data processing. Will print out a graph when prompted. 
 //Returns 0 if successful, -1 if not
@@ -123,21 +138,10 @@ sys_getpinfo(struct pstat *){
   
   for (int i = 0; i < n ; i++){
           if (values->inuse[i] == 0){
-          print (1,"Process PID: %d", values->pid[n]);
-          print (1,"Process ticket amount: %d", values->tickets[n]);
-          print (1,"Process runtime: %s \n", values->ticks[n]);
+          printf (1,"Process PID: %d", values->pid[n]);
+          printf (1,"Process ticket amount: %d", values->tickets[n]);
+          printf (1,"Process runtime: %s \n", values->ticks[n]);
       }
   }
   return 0; 
 }
-
-// Return how many system calls have been made since the start of the program. Since boot. 
-int
-sys_howmanysys(void)
-{
-int call_amt = 0;
-call_amt = proc->syscall_num;
-return call_amt; 
-}
-
-void 

@@ -1,3 +1,5 @@
+
+#include "pstat.h"
 #ifndef _PROC_H_
 #define _PROC_H_
 // Segments in proc->gdt.
@@ -19,7 +21,7 @@ struct cpu {
   volatile uint booted;        // Has the CPU started?
   int ncli;                    // Depth of pushcli nesting.
   int intena;                  // Were interrupts enabled before pushcli?
-  int ticket_amt;              // Amount of tickets assigned to process
+  
   // Cpu-local storage variables; see below
   struct cpu *cpu;     
   struct pstat *process_statuses; //Global reference for the process statuses
@@ -62,6 +64,7 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
 struct proc {
+  int ticket_amt;              // Amount of tickets assigned to process
   uint syscall_num;            // PASS THE AMOUNT OF SYSCALLS THROUGH HERE
   uint sz;                     // Size of process memory (bytes)
   pde_t* pgdir;                // Page table
