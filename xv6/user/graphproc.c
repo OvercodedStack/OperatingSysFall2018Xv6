@@ -16,28 +16,23 @@
 #include "user.h"
 #include "pstat.h"
  
-
-
-
-void printvals(int mul){
-    for (int p = 0; p < mul; p++){
-        printf(1,"#");
-    }
-}
-
 int main (void){
-    struct pstat values;
-    values = return_pstats();
-    printf(1,"Displaying the amount of system calls.");
-    int n = sizeof(values.inuse)/sizeof(values.inuse[0]);
-    for (int i = 0; i < n ; i++){
-            if (values.inuse[i] == 0){
-            printf (1,"Process PID: %d", (int)values.pid[n]);
-            printf (1,"Process ticket amount: %d", (int)values.tickets[n]);
-            printf (1,"Process runtime: ");
-            printvals((int)values.ticks[n]);
-            printf (1, "\n");
-        }
-    } 
+    //Total runnable proc
+    int n;
+    int children = 2; 
+    settickets(10);
+    for(n = 0; n < children; n++){
+        if(n==1)
+            settickets(20);
+        if(n==0)
+            settickets(30);
+        if(fork()==0)
+            exit();
+    }
+    
+    for (int n = 0; n < children; n++ ){
+        getpinfo();
+        wait();
+    }
     exit();
 }

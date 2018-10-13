@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "sysfunc.h"
 #include "pstat.h"
+
 //int sfs = 0; 
 
 int
@@ -96,14 +97,38 @@ int
 sys_howmanysys(void)
 {
 int call_amt = 0;
-call_amt = proc->sys_return_pstats
-return call_amt; sys_return_pstats
+call_amt = proc->syscall_num;
+return call_amt; 
+}
+
+//Function to seek literal amount of tickets assigned to proc
+//Returns 0 if successful, -1 if not
+int
+sys_settickets(void){
+  int value;
+  if (argint(0,&value) < 0)
+    return -1;
+  proc->ticket_amt = value;
+  return 0;
+}
+
+//Prints out a list of data processing. Will print out a graph when prompted. 
+//Returns 0 if successful, -1 if not
+int 
+sys_getpinfo(void){
+  
+  int n = NCPU;
+  cprintf("There are %d processes\n",n);
+  cprintf("#PID#    #TICKETS#    #RUNTIME#  #INUSE#\n");
+  for (int i = 0; i < n ; i++){
+      cprintf("%d    %d    %d    %d \n",
+      process_statuses.pid[i],process_statuses.tickets[i],
+      process_statuses.ticks[i],process_statuses.inuse[i]);      
+  }
+  return 0; 
 }
 
 
-struct pstat
-sys_return_pstats(void)
-{
   /*
   struct pstat *statistics; 
   if(argfd(0, 0, &f) < 0){
@@ -115,33 +140,3 @@ sys_return_pstats(void)
   statistics->pid = process_statuses->pid;
   return statistics;  
 */
-return process_statuses;
-}
-//Function to seek literal amount of tickets assigned to proc
-//Returns 0 if successful, -1 if not
-int
-sys_settickets(int tick_set){
-  int value;
-  if(argint(0,&value) <0)
-    return -1;
-  proc->ticket_amt = tick_set;
-  return 0;
-}
-
-//Prints out a list of data processing. Will print out a graph when prompted. 
-//Returns 0 if successful, -1 if not
-int 
-sys_getpinfo(struct pstat *){
-  int returnVal;
-  if (argint(0,&returnVal) <0)
-    return -1
-  
-  for (int i = 0; i < n ; i++){
-          if (values->inuse[i] == 0){
-          printf (1,"Process PID: %d", values->pid[n]);
-          printf (1,"Process ticket amount: %d", values->tickets[n]);
-          printf (1,"Process runtime: %s \n", values->ticks[n]);
-      }
-  }
-  return 0; 
-}

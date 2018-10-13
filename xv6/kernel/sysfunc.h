@@ -1,5 +1,5 @@
 
-#include "pstat.h"
+//#include "pstat.h"
 #ifndef _SYSFUNC_H_
 #define _SYSFUNC_H_
 
@@ -26,11 +26,15 @@ int sys_wait(void);
 int sys_write(void);
 int sys_uptime(void);
 int sys_howmanysys(void);
+int sys_getpinfo(void);
+int sys_settickets(void);
+
+/*
 struct pstat sys_return_pstats(void);
 int sys_settickets(int tick_set);
 int sys_getpinfo(struct pstat);
 
-
+*/
 
 
 #endif // _SYSFUNC_H_

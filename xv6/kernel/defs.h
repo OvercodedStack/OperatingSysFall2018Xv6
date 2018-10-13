@@ -109,6 +109,12 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+/*
+int             howmanysys(void);
+struct pstat    return_pstats(void);
+int             getpinfo(void);
+int             settickets(int tick_set);
+*/
 
 // swtch.S
 void            swtch(struct context**, struct context*);

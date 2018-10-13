@@ -1,9 +1,10 @@
-#include "pstat.h"
+//#include "pstat.h"
 #ifndef _USER_H_
 #define _USER_H_
 
 //struct pstat;
 struct stat;
+struct pstat;
 
 // system calls
 int fork(void);
@@ -28,9 +29,16 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int howmanysys(void);
+int return_pstats(void);
+int getpinfo(void);
+int settickets(int);
+
+
+/*
+struct pstat return_pstats(void);
 int getpinfo(struct pstat *structure);
 int settickets(int tick_set);
-struct pstat return_pstats(void);
+*/
 
 // user library functions (ulib.c)
 int stat(char*, struct stat*);

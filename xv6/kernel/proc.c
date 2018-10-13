@@ -5,6 +5,8 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "pstat.h"
+#define   TICKET_STORAGE
 
 struct {
   struct spinlock lock;
@@ -12,6 +14,7 @@ struct {
 } ptable;
 
 static struct proc *initproc;
+struct pstat process_statuses; 
 
 int nextpid = 1;
 extern void forkret(void);
@@ -25,8 +28,80 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+//================Process locks for tickets================
+//Make sure to lock ptable before using some of the ticket commands. 
+int ticket_total; 
+
+//Function to fill out the pstats data structure. 
+void
+get_pstats(void){
+  struct proc *p;
+  int var = 0;
+  //acquire(&ptable.lock);
+  p = proc;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    //cprintf("I have to scream inuse %d",procinuse[0]);
+        process_statuses.inuse[var]    = p->inuse;
+      //cprintf("I have to scream inuse %d",p->inuse);
+        process_statuses.tickets[var]  = p->ticket_amt;
+      //cprintf("I have to scream inuse %d",p->inuse);
+        process_statuses.pid[var]      = p->pid;
+      //cprintf("I have to scream inuse %d",p->inuse);
+        process_statuses.ticks[var]    = p->ticks;
+      //cprintf("I have to scream inuse %d",p->inuse);
+      var+=1;
+    } 
+  //release(&ptable.lock);
+}
 
 
+//Calculate ticket total
+//OBSOLETE
+int 
+get_lottoTotal(void){
+struct proc *p;
+int total_tickets_output = 0;
+for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+  if(p->state == RUNNABLE){
+    //cprintf("val: %d",p->ticket_amt);
+    total_tickets_output+=p->ticket_amt;
+  }
+}
+//cprintf(" Returning %d\n ",total_tickets_output);
+return total_tickets_output;
+}
+
+//Set the process's tickets
+void
+set_process_tickets(struct proc* p, int t){
+    ticket_total -= p->ticket_amt;
+    p->ticket_amt =t;
+    ticket_total += p->ticket_amt; 
+}
+
+//Function called when a process is removed from queue 
+void 
+tickets_rm_from_total(struct proc* p){
+  if (p->state != SLEEPING){
+    panic("Process not asleep");
+    #ifdef TICKET_STORAGE
+    ticket_total -= p->ticket_amt;
+    #endif   
+  }
+}
+
+//Function called when process is added to queue 
+void 
+tickets_add_to_total(struct proc* p){
+  if (p->state != SLEEPING){
+    panic("Process not asleep");
+    #ifdef TICKET_STORAGE
+    ticket_total += p->ticket_amt;
+    #endif  
+  }
+}
+
+//Generate a random "seed"
 int 
 genRand()
 {
@@ -42,6 +117,7 @@ rand_gen(int min, int max){
   int genVal = (genRand() % (max + 1 - min)) + min;
   return genVal;
 }
+//===========================================================
 
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -57,13 +133,15 @@ allocproc(void)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
+  release(&ptable.lock);
+  return 0;
+
 
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
-  //Process must initialize with a number of tickets inside of it. 
-  p->ticket_amt = 15; 
+  
   release(&ptable.lock);
 
   // Allocate kernel stack if possible.
@@ -113,6 +191,9 @@ userinit(void)
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
 
+  //Process must initialize with a number of tickets inside of it. 
+  set_process_tickets(p,15);
+  
   safestrcpy(p->name, "initcode", sizeof(p->name));
   p->cwd = namei("/");
 
@@ -160,9 +241,16 @@ fork(void)
     np->state = UNUSED;
     return -1;
   }
+
+  
+
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
+  
+  //Copy the amount of tickets over from parent to child
+  //Formally processed by a method
+  set_process_tickets(np, proc->ticket_amt);
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -209,6 +297,8 @@ exit(void)
   // Parent might be sleeping in wait().
   wakeup1(proc->parent);
 
+
+
   // Pass abandoned children to init.
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->parent == proc){
@@ -217,6 +307,9 @@ exit(void)
         wakeup1(initproc);
     }
   }
+
+  //Since process died, remove from ticket total. 
+  set_process_tickets(p,0);
 
   // Jump into the scheduler, never to return.
   proc->state = ZOMBIE;
@@ -251,6 +344,8 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
+        p->ticks =0; 
+        set_process_tickets(p,0);
         release(&ptable.lock);
         return pid;
       }
@@ -267,52 +362,29 @@ wait(void)
   }
 }
 
-// Per-CPU process scheduler.
-// Each CPU calls scheduler() after setting itself up.
-// Scheduler never returns.  It loops, doing:
-//  - choose a process to run
-//  - swtch to start running that process
-//  - eventually that process transfers control
-//      via swtch back to the scheduler.
+
+
+
+/*
+
 void
 scheduler(void)
 {
   struct proc *p;
-  int proc_index = 1; 
-
-
-
 
   for(;;){
-    int ticket_counter = 0;
-    int ticket_total = 0;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-      ticket_total = ticket_total + p->ticket_amt;
-    }
-    int winner_ticket = rand_gen(0, ticket_total);
-
-
     // Enable interrupts on this processor.
-    //sti();
-    if (!proc_index);
-      proc_index = 0;
+    sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      
       if(p->state != RUNNABLE)
         continue;
-
-
-      //Highly temporary
-      ticket_counter += proc->ticket_amt;
-      if (ticket_counter < winner_ticket){
-        continue; 
+      else{
+        cprintf("Process PID: %d  in %d  with %d",p->pid,p->state,p->ticket_amt);
       }
-      proc_index = 1; 
-
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -325,10 +397,92 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       proc = 0;
-      break; 
     }
     release(&ptable.lock);
 
+  }
+}
+*/
+
+// Per-CPU process scheduler.
+// Each CPU calls scheduler() after setting itself up.
+// Scheduler never returns.  It loops, doing:
+//  - choose a process to run
+//  - swtch to start running that process
+//  - eventually that process transfers control
+//      via swtch back to the scheduler.
+
+void
+scheduler(void)
+{
+  struct proc *p;
+  int tick_counter = 0; 
+
+  acquire(&ptable.lock);
+  set_process_tickets(ptable.proc,1);
+  release(&ptable.lock);
+  for(;;){   
+    // Enable interrupts on this processor.
+    sti();    
+    tick_counter = 0; 
+    acquire(&ptable.lock);
+    ticket_total = get_lottoTotal();
+    release(&ptable.lock);
+    
+    int winner_ticket = rand_gen(0, ticket_total);
+    if (ticket_total < winner_ticket){
+      winner_ticket %= ticket_total;
+    }
+    //cprintf("Win: %d ; Tot: %d",winner_ticket, ticket_total);
+    // Loop over process table looking for process to run.
+    // Switch to chosen process.  It is the process's job
+    // to release ptable.lock and then reacquire it
+    // before jumping back to us.
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE){
+#ifndef TICKET_STORAGE
+        tick_counter += p->ticket_amt;
+#endif 
+        continue;
+      }
+ 
+      tick_counter +=p->ticket_amt;
+
+      //We cannot have a counter less than the winner, if so skip processing. 
+      if (tick_counter < winner_ticket)
+      {
+        continue;
+      }else if (tick_counter > ticket_total){
+        cprintf("Total tickets: %d\n", ticket_total);
+        cprintf("Ticket counter: %d\n", tick_counter);
+        cprintf("Winner ticket: %d\n", winner_ticket);
+        cprintf("Process PID: %d  in %d  with %d\n",p->pid,p->state,p->ticket_amt);
+      }
+      
+      
+      //pstats stats to add to the process
+      proc = p; 
+      p->inuse = 1;
+      switchuvm(p);
+      p->state = RUNNING;
+      //Start the process.
+      const int start_ticks = ticks; 
+      swtch(&cpu->scheduler, proc->context);
+
+      // Process is done running for now.
+      // It should have changed its p->inuse before coming back.
+      p->ticks += ticks - start_ticks;
+      p->inuse = 0;
+      switchkvm();
+      proc = 0;
+      break; 
+    }
+
+    get_pstats();
+    release(&ptable.lock);
+    ticket_total = 0; 
   }
 }
 
@@ -448,6 +602,7 @@ kill(int pid)
       p->killed = 1;
       // Wake process from sleep if necessary.
       if(p->state == SLEEPING)
+        tickets_rm_from_total(p); //Storing the disabled processe's tickets
         p->state = RUNNABLE;
       release(&ptable.lock);
       return 0;
@@ -492,5 +647,4 @@ procdump(void)
     cprintf("\n");
   }
 }
-
 
