@@ -37,26 +37,17 @@ void
 get_pstats(void){
   struct proc *p;
   int var = 0;
-  //acquire(&ptable.lock);
   p = proc;
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    //cprintf("I have to scream inuse %d",procinuse[0]);
         process_statuses.inuse[var]    = p->inuse;
-      //cprintf("I have to scream inuse %d",p->inuse);
         process_statuses.tickets[var]  = p->ticket_amt;
-      //cprintf("I have to scream inuse %d",p->inuse);
         process_statuses.pid[var]      = p->pid;
-      //cprintf("I have to scream inuse %d",p->inuse);
         process_statuses.ticks[var]    = p->ticks;
-      //cprintf("I have to scream inuse %d",p->inuse);
       var+=1;
     } 
-  //release(&ptable.lock);
 }
 
-
 //Calculate ticket total
-//OBSOLETE
 int 
 get_lottoTotal(void){
 struct proc *p;
@@ -433,6 +424,7 @@ scheduler(void)
     if (ticket_total < winner_ticket){
       winner_ticket %= ticket_total;
     }
+    
     //cprintf("Win: %d ; Tot: %d",winner_ticket, ticket_total);
     // Loop over process table looking for process to run.
     // Switch to chosen process.  It is the process's job
@@ -467,6 +459,7 @@ scheduler(void)
       p->inuse = 1;
       switchuvm(p);
       p->state = RUNNING;
+
       //Start the process.
       const int start_ticks = ticks; 
       swtch(&cpu->scheduler, proc->context);

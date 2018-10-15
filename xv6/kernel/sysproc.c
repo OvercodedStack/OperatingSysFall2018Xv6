@@ -121,22 +121,9 @@ sys_getpinfo(void){
   cprintf("There are %d processes\n",n);
   cprintf("#PID#    #TICKETS#    #RUNTIME#  #INUSE#\n");
   for (int i = 0; i < n ; i++){
-      cprintf("%d    %d    %d    %d \n",
+      cprintf("%d         %d            %d               %d \n",
       process_statuses.pid[i],process_statuses.tickets[i],
       process_statuses.ticks[i],process_statuses.inuse[i]);      
   }
   return 0; 
 }
-
-
-  /*
-  struct pstat *statistics; 
-  if(argfd(0, 0, &f) < 0){
-    return NULL;
-  }
-  statistics->inuse = process_statuses->inuse;
-  statistics->tickets = process_statuses->tickets;
-  statistics->ticks = process_statuses->ticks;
-  statistics->pid = process_statuses->pid;
-  return statistics;  
-*/

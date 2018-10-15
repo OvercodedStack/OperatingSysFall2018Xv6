@@ -21,15 +21,16 @@ int main (void){
     int n;
     int children = 2; 
     settickets(10);
+    printf(1,"Starting the printout.\n");
     for(n = 0; n < children; n++){
         if(n==1)
-            settickets(20);
+            settickets(20);   
         if(n==0)
             settickets(30);
         if(fork()==0)
+            getpinfo();
             exit();
     }
-    
     for (int n = 0; n < children; n++ ){
         getpinfo();
         wait();
