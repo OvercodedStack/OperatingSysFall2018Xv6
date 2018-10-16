@@ -68,6 +68,7 @@ struct proc {
   int ticket_amt;              // Amount of tickets assigned to process
   int ticks; 
   int inuse;
+  int winnerNum;
   
   uint syscall_num;            // PASS THE AMOUNT OF SYSCALLS THROUGH HERE
   uint sz;                     // Size of process memory (bytes)

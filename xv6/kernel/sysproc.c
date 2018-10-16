@@ -118,12 +118,13 @@ int
 sys_getpinfo(void){
   
   int n = NCPU;
-  cprintf("There are %d processes\n",n);
-  cprintf("#PID#    #TICKETS#    #RUNTIME#  #INUSE#\n");
+  //cprintf("There are %d processes\n",n);
+  cprintf("#PID#    #TICKETS#    #RUNTIME#  #INUSE#      #MISC#\n");
   for (int i = 0; i < n ; i++){
-      cprintf("%d         %d            %d               %d \n",
+      cprintf("%d         %d            %d               %d               %d \n",
       process_statuses.pid[i],process_statuses.tickets[i],
-      process_statuses.ticks[i],process_statuses.inuse[i]);      
+      process_statuses.ticks[i],process_statuses.inuse[i], process_statuses.lastwinner[i]);      
   }
+  cprintf("###############################################\n");
   return 0; 
 }
