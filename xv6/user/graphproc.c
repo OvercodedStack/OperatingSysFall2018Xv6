@@ -48,19 +48,14 @@ int main (void){
     printf(1,"Starting the printout.\n");
     for(n = 0; n < childs; n++){
         if(n>1){
-            //printf(1,"In parent.\n");
             settickets(30);  
             timewaster(); 
-            //getpinfo();
         }
         if(n==0){
-            //printf(1,"In child.\n");
             settickets(30);
             timewaster();
-            //getpinfo();
         }
         if(fork()==0){
-            //printf(1,"Forking\n");
             int randNum = rand_gen(0,3) + 1;
             if (randNum == 1){
                 settickets(10);
@@ -71,10 +66,8 @@ int main (void){
                 settickets(30);
             }
             timewaster();
-            //getpinfo();
             exit();
-        }
-        
+        }  
     }
     
     for (int n = 0; n < childs; n++ ){

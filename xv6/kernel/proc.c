@@ -22,6 +22,8 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+struct spinlock lgp;
+
 void
 pinit(void)
 {
@@ -81,7 +83,6 @@ genRand(struct proc* p)
 //Random number generator for random generation purposes
 int 
 rand_gen(int min, int max,struct proc* p){
-  //int genVal = (genRand() % (max - min + 1)) + min;
   int genVal = (genRand(p) % (max + 1 - min)) + min;
   return genVal;
 }
@@ -176,7 +177,9 @@ int
 growproc(int n)
 {
   uint sz;
-  
+  struct proc *p;
+  //pde_t *temp = proc->pgdir;
+
   sz = proc->sz;
   if(n > 0){
     if((sz = allocuvm(proc->pgdir, sz, sz + n)) == 0)
@@ -185,7 +188,21 @@ growproc(int n)
     if((sz = deallocuvm(proc->pgdir, sz, sz + n)) == 0)
       return -1;
   }
+
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if (p->pgdir != proc->pgdir)
+      continue;
+    
+    p->sz = sz;
+    /*
+    acquire(&lgp);
+    switchuvm(p);
+    release(&lgp);    */
+  }
+  
   proc->sz = sz;
+  release(&ptable.lock);
   switchuvm(proc);
   return 0;
 }
@@ -279,7 +296,7 @@ exit(void)
       p->parent = initproc;
       if(p->state == ZOMBIE)
         wakeup1(initproc);
-    }
+    } 
   }
 
   //Since process died, remove from ticket total. 
@@ -343,7 +360,7 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-
+/*
 void
 scheduler(void)
 {
@@ -414,6 +431,40 @@ scheduler(void)
     tick_counter = 0; 
   }
 }
+*/
+
+void
+scheduler(void)
+{
+  struct proc *p;
+
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&cpu->scheduler, proc->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      proc = 0;
+    }
+    release(&ptable.lock);
+
+  }
+}
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state.
@@ -450,12 +501,8 @@ yield(void)
 void
 forkret(void)
 {
-  //static int first = 1;
   // Still holding ptable.lock from scheduler.
   release(&ptable.lock);
-  //first = 0;
-  //init(ROOTDEV);
-  //initlog(ROOTDEV);
   // Return to "caller", actually trapret (see allocproc).
 }
 
@@ -548,6 +595,7 @@ kill(int pid)
 void
 procdump(void)
 {
+  cprintf("SCREAMS OF AGONY");
   static char *states[] = {
   [UNUSED]    "unused",
   [EMBRYO]    "embryo",
@@ -576,5 +624,117 @@ procdump(void)
     }
     cprintf("\n");
   }
+
 }
+
+//This function allows the processes to wait for each other and "join" once a process
+//state changes from zombie to running/ready. 
+int join(void **stack){
+  cprintf("SCREAMS OF TYRANNY");
+  struct proc *p;         //Process struct to manipulate
+  int childThreads,pid;   //How many threads we have and its pid
+  acquire(&ptable.lock);  //Ptable lock
+  
+  for(;;){
+    childThreads = 0;
+    for (p=ptable.proc; p< &ptable.proc[NPROC];p++){
+      if (p->pgdir != proc->pgdir || p->parent != proc|| proc->pid == p->pid){
+        continue;
+      }
+      //We've identified this to be a child.
+      childThreads = 1;
+    
+      if(p->state == ZOMBIE){
+        //We're going to adquire and set some values at this point
+        int *tmp = (int*) 0x1FD8;
+        pid  = p->pid;
+        void *stackAddr = (void *)p->parent->tf->esp + 7*sizeof(void *);
+        *(uint *)stackAddr = p->tf->ebp;
+        *(uint *)stackAddr += 3 * sizeof(void *) - PGSIZE;
+
+        kfree(p->kstack);
+        p->parent = 0;
+        p->name[0] = 0;
+        p->kstack = 0;
+        p->pid = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        
+        // Get stack of the zombie child thread to return
+        *tmp = pid;
+         *((int*)((int*)stack))=p->stack;
+        release(&ptable.lock);
+        return pid;
+      }
+    }
+  //No Children conditional
+  if(!childThreads || proc->killed){
+    release(&ptable.lock);
+    return -1;
+  }
+  //The actual wait function for the children.
+  sleep(proc, &ptable.lock);
+  }
+  return 0;
+}
+  
+int clone(void(*fcn)(void*), void *arg, void *stack){
+  int j,pid;
+  uint ustack[2];
+  struct proc *np;
+  cprintf("SCREAMS OF CLONING");
+
+  //Check if process can be allocated, else drop.
+  if((np = allocproc())==0){
+    return -1;
+  }
+
+  //Copy and allocate process data from one process to the next
+  np->stack = (uint)stack;
+  np->pgdir = proc->pgdir;
+  np->sz = proc->sz;
+  np->parent = proc; 
+  *np->tf = *proc->tf;
+
+  //init stack - Remember that the size of one page is 4096 bytes
+  void *argStack, *rectStack;
+
+  np->tf->esp = (uint) stack + PGSIZE;
+  argStack = stack + 4096 - sizeof(void*);
+  *(uint *)argStack = (uint)arg;
+  ustack[1] = (uint)arg;  
+  ustack[0] = 0xFFFFFFFF;
+  rectStack = stack + 4096 - 2 * sizeof(void*);
+  *(uint *)rectStack = 0xFFFFFFFF;
+
+  np->tf->esp -=(2)*4;
+  copyout(np->pgdir, np->tf->esp, ustack, (2)*4);
+
+
+  np->tf->ebp = np->tf->esp;
+  np->tf->eip = (int)fcn;
+  //Create the location where the stack pointer will be. 
+  //np->tf->esp = (int)stack;
+  //memmove((void *)np->tf->esp,stack,PGSIZE);
+  //np->tf->esp += PGSIZE - 2 * sizeof(void *);
+  
+  
+
+  	
+  //Copy over the ofile from one process to another
+  for (j =0; j < NOFILE; j++){
+    if (proc->ofile[j]){
+      np->ofile[j] = filedup(proc->ofile[j]);
+    }
+  }
+  np->cwd = idup(proc->cwd);
+  np->tf->eax = 0;
+  np->state = RUNNABLE;
+  safestrcpy(np->name,proc->name,sizeof(proc->name));
+  //Return pid of process 
+  pid = np->pid;
+  return pid;
+}
+
+
 

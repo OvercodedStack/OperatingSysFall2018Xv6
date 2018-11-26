@@ -32,6 +32,8 @@ int howmanysys(void);
 int return_pstats(void);
 int getpinfo(void);
 int settickets(int);
+int clone(void (*start_routine)(void*), void *, void *);
+int join(void**);
 
 
 /*

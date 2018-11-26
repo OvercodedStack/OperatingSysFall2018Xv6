@@ -32,5 +32,6 @@ SYSCALL(uptime)
 SYSCALL(howmanysys)
 SYSCALL(settickets)
 SYSCALL(getpinfo)
-
+SYSCALL(clone)
+SYSCALL(join)
 

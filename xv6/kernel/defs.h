@@ -1,6 +1,15 @@
 #ifndef _DEFS_H_
 #define _DEFS_H_
 
+
+typedef struct {
+  uint flag;
+} lock_t;
+
+typedef struct {
+  lock_t *lock;
+} cond_t;
+
 struct buf;
 struct context;
 struct file;
@@ -108,7 +117,11 @@ void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
+void            wakeup2(void*);
 void            yield(void);
+int             clone(void(*fcn)(void*), void *, void*);
+int             join(void**);
+
 /*
 int             howmanysys(void);
 struct pstat    return_pstats(void);

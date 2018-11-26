@@ -28,6 +28,8 @@ int sys_uptime(void);
 int sys_howmanysys(void);
 int sys_getpinfo(void);
 int sys_settickets(void);
+int sys_clone(void);
+int sys_join(void);
 
 /*
 struct pstat sys_return_pstats(void);

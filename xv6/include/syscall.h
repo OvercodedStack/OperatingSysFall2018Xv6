@@ -25,6 +25,9 @@
 #define SYS_uptime 21
 #define SYS_howmanysys 22
 #define SYS_settickets 23
-#define SYS_getpinfo 24
+#define SYS_getpinfo   24
+#define SYS_clone  25
+#define SYS_join   26
+
 
 #endif // _SYSCALL_H_
